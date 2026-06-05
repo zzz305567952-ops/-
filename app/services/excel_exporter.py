@@ -11,11 +11,14 @@ HEADERS = [
     "景别",
     "拍摄角度",
     "运镜",
-    "时长",
+    "时长(s)",
+    "前景",
+    "背景",
     "画面内容",
     "台词",
     "光影氛围",
-    "AI绘图提示词",
+    "镜头设备",
+    "Flux绘图提示词",
 ]
 
 
@@ -34,10 +37,13 @@ def build_storyboard_workbook(shots: list[StoryboardShot]) -> bytes:
                 shot.camera_angle,
                 shot.camera_movement,
                 shot.duration,
+                shot.foreground,
+                shot.background,
                 shot.visual_content,
                 shot.dialogue,
                 shot.lighting_mood,
-                shot.ai_image_prompt,
+                shot.camera_equipment,
+                shot.flux_prompt,
             ]
         )
 
@@ -57,7 +63,7 @@ def _style_worksheet(worksheet) -> None:
         cell.font = header_font
         cell.alignment = Alignment(horizontal="center", vertical="center")
 
-    widths = [12, 12, 14, 14, 10, 36, 32, 36, 56]
+    widths = [12, 12, 14, 14, 10, 28, 34, 42, 32, 38, 26, 68]
     for index, width in enumerate(widths, start=1):
         worksheet.column_dimensions[get_column_letter(index)].width = width
 

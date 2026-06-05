@@ -2,6 +2,7 @@ import re
 from dataclasses import dataclass
 
 from app.models.schemas import Scene
+from app.services.ancient_drama_rules import all_location_keywords, match_scene_rule
 
 SCENE_HEADING_PATTERNS = [
     re.compile(r"^(?:第\s*)?[一二三四五六七八九十百零〇两\d]+\s*[场幕]\b[：:、.．\s-]*(?P<title>.+)?$"),
@@ -11,11 +12,12 @@ SCENE_HEADING_PATTERNS = [
 ]
 
 LOCATION_WORDS = (
-    "王府", "皇宫", "宫", "殿", "御书房", "书房", "寝殿", "庭院", "后院", "长廊", "街", "集市", "客栈", "酒楼",
-    "山林", "竹林", "牢房", "地牢", "城门", "军营", "祠堂", "湖边", "河边", "房间", "屋内", "门外", "院内",
+    *all_location_keywords(),
+    "殿", "庭院", "长廊", "牢房", "地牢", "祠堂", "湖边", "河边", "房间", "屋内", "门外", "院内",
 )
-TIME_WORDS = ("日", "夜", "晨", "昏", "清晨", "黄昏", "雨夜", "雪夜", "午后", "傍晚", "深夜")
+TIME_WORDS = ("日", "夜", "晨", "昏", "清晨", "黄昏", "雨夜", "雪夜", "午后", "傍晚", "深夜", "天刚亮", "夜色", "暮色")
 INTERIOR_EXTERIOR_WORDS = ("内", "外", "内景", "外景")
+EVENT_LOCATION_SKIP_WORDS = ("夜袭", "刺杀", "偷袭", "追杀", "埋伏", "婚宴", "大婚")
 
 
 @dataclass(frozen=True)
@@ -39,6 +41,7 @@ def detect_scenes(text: str) -> list[Scene]:
                 interior_exterior=None,
                 time_of_day=None,
                 raw_text=text.strip(),
+                scene_type=match_scene_rule(text).scene_type,
             )
         ]
 
@@ -57,6 +60,7 @@ def detect_scenes(text: str) -> list[Scene]:
                 interior_exterior=metadata["interior_exterior"],
                 time_of_day=metadata["time_of_day"],
                 raw_text=raw_text,
+                scene_type=match_scene_rule(heading.title, metadata["location"], raw_text).scene_type,
             )
         )
 
@@ -108,7 +112,7 @@ def _extract_scene_metadata(title: str) -> dict[str, str | None]:
 
     location = None
     for token in tokens:
-        if token in INTERIOR_EXTERIOR_WORDS or token in TIME_WORDS:
+        if token in INTERIOR_EXTERIOR_WORDS or token in TIME_WORDS or token in EVENT_LOCATION_SKIP_WORDS:
             continue
         if any(word in token for word in LOCATION_WORDS) or len(token) >= 2:
             location = token

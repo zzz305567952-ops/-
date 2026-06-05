@@ -35,7 +35,11 @@ def test_create_storyboard_from_docx() -> None:
     data = response.json()
     assert data["filename"] == "script.docx"
     assert len(data["scenes"]) == 1
+    assert data["scenes"][0]["characters"] == ["苏清月"]
+    assert data["scenes"][0]["scene_type"] == "王府"
     assert data["shots"][0]["sequence"] == "1-1"
+    assert "flux_prompt" in data["shots"][0]
+    assert "ai_image_prompt" not in data["shots"][0]
 
 
 def test_export_storyboard_excel() -> None:
@@ -46,11 +50,14 @@ def test_export_storyboard_excel() -> None:
                 "shot_size": "全景",
                 "camera_angle": "平视",
                 "camera_movement": "缓慢推进",
-                "duration": "3秒",
+                "duration": 3,
+                "foreground": "雨帘与廊柱。",
+                "background": "王府长廊。",
                 "visual_content": "王府长廊雨夜。",
                 "dialogue": "",
                 "lighting_mood": "冷蓝雨夜。",
-                "ai_image_prompt": "古装人物，王府长廊。",
+                "camera_equipment": "35mm电影镜头，稳定器",
+                "flux_prompt": "古装短剧电影剧照，王府长廊。",
             }
         ]
     }
