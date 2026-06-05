@@ -5,12 +5,13 @@ from app.models.schemas import ExportRequest, StoryboardResponse
 from app.services.docx_parser import DocxParseError, parse_docx
 from app.services.excel_exporter import build_storyboard_workbook
 from app.services.scene_detector import detect_scenes
+from app.services.script_analyzer import analyze_scenes
 from app.services.storyboard_generator import generate_storyboard
 
 app = FastAPI(
     title="古装短剧分镜生成工具",
     description="上传 Word 剧本，自动识别场景、拆分镜头并导出 Excel。",
-    version="0.1.0",
+    version="0.2.0",
 )
 
 
@@ -36,7 +37,7 @@ async def create_storyboard_from_docx(file: UploadFile = File(...)) -> Storyboar
     except DocxParseError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    scenes = detect_scenes(text)
+    scenes = analyze_scenes(detect_scenes(text))
     shots = generate_storyboard(scenes)
     return StoryboardResponse(filename=file.filename, text=text, scenes=scenes, shots=shots)
 
